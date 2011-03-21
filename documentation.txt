@@ -1,0 +1,1 @@
+To use erkie, just load a browser, and point it to index.html
