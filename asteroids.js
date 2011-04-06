@@ -1,7 +1,8 @@
 (function() {
-function Asteroids() {
+function Asteroids() 
+{
 	if ( ! window.ASTEROIDS )
-		window.ASTEROIDS = {enemiesKilled: 0};
+	window.ASTEROIDS = {enemiesKilled: 0};
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -275,8 +276,8 @@ function Asteroids() {
 	var maxParticles = isIE ? 20 : 40;
 	var maxBullets = isIE ? 10 : 20;
 	
-	/*var highscoreURL = "http://asteroids.glonk.se/highscores.html";
-	var closeURL = "http://asteroids.glonk.se/close.png";*/
+	var highscoreURL = "http://asteroids.glonk.se/highscores.html";
+	var closeURL = "http://asteroids.glonk.se/close.png";
 	
 	// Current Timer until gameover.
 	var currentTime = 60;
@@ -632,7 +633,7 @@ function Asteroids() {
 		message.style.border = '1px solid #999';
 		message.style.background = 'white';
 		message.style.color = "black";
-		message.innerHTML = 'HERPA DERPAKJFDLKS';
+		message.innerHTML = 'Press Esc to Quit.';
 		document.body.appendChild(message);
 		
 		var x = e.pageX || (e.clientX + document.documentElement.scrollLeft);
@@ -700,7 +701,8 @@ function Asteroids() {
 			right = "10px";
 			textAlign = "right";
 		}
-		this.navigation.innerHTML = "(press esc to quit) ";
+		this.navigation.innerHTML = "(Press Esc To Quit.) ";
+		
 		this.gameContainer.appendChild(this.navigation);
 		
 		// points
@@ -719,7 +721,8 @@ function Asteroids() {
 		this.points.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.points);
 	}
-	else // Already created.{
+	else // Already created.
+	{
 		this.navigation = document.getElementById('ASTEROIDS-NAVIGATION');
 		this.points = document.getElementById('ASTEROIDS-POINTS');
 	}
@@ -925,7 +928,7 @@ function Asteroids() {
 		var tDelta = (nowTime - lastUpdate) / 1000;
 		
 		// STUB countdown time by seconds.
-		if(currentTime > 0 && tDelsta > 0){
+		if(currentTime > 0 && tDelta > 0){
 			currentTime--;
 		}
 		lastUpdate = nowTime;
