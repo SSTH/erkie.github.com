@@ -1,7 +1,11 @@
 (function() {
-function Asteroids() {
+function Asteroids() 
+{
 	if ( ! window.ASTEROIDS )
-		window.ASTEROIDS = {enemiesKilled: 0};
+	{
+		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, currentCombo: 1};
+		window.ASTEROIDS.currentScore = parseInt(localStorage["highscore"]);
+	}
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -172,7 +176,8 @@ function Asteroids() {
 	};
 	
 	// Highscores element to be implemented.
-	function Highscores() {
+	function Highscores() 
+	{
 		var w = (document.clientWidth || window.innerWidth);
 		var h = (document.clientHeight || window.innerHeight);
 		
@@ -186,7 +191,7 @@ function Asteroids() {
 			height = "500px";
 			MozBoxShadow = WebkitBoxShadow = "0 0 25px #000";
 			zIndex = "10002";
-		};
+		};	
 		document.body.appendChild(this.container);
 		
 		// Create iframe
@@ -275,18 +280,31 @@ function Asteroids() {
 	var maxParticles = isIE ? 20 : 40;
 	var maxBullets = isIE ? 10 : 20;
 	
-	/*var highscoreURL = "http://asteroids.glonk.se/highscores.html";
-	var closeURL = "http://asteroids.glonk.se/close.png";*/
+	var highscoreURL = "http://asteroids.glonk.se/highscores.html";
+	var closeURL = "http://asteroids.glonk.se/close.png";
 	
 	// Current Timer until gameover.
 	var currentTime = 60;
 	
 	// If ship is currently in a combo.
-	var currentCombo = 0;
+	var currentCombo = 1;
+	var currentScore = 0;
 	var inCombo = false;
 	
 	var currentLives = 3;
 	
+	var backColor = new Array(); // don't change this
+
+	// Enter the colors you wish to use.  Follow the
+	// pattern to use more colors.  The number in the
+	// brackets [] is the number you will use in the
+	// function call to pick each color.
+
+	backColor[0] = '#000000';
+	backColor[1] = '#00FF00';
+	backColor[2] = '#0000FF';
+	backColor[3] = '#FFFFFF';
+
 	/**********************************************************************************/
 	
 	// Flames generated every 10 ms.
@@ -295,9 +313,11 @@ function Asteroids() {
 	// blink style
 	this.toggleBlinkStyle = function () 
 	{
-		if (this.updated.blink.isActive) {
-			removeClass(document.body, 'ASTEROIDSBLINK');
-		} else {
+		if (this.updated.blink.isActive) 
+		{
+			//removeClass(document.body, 'ASTEROIDSBLINK');
+		} else 
+		{
 			addClass(document.body, 'ASTEROIDSBLINK');
 		}
 
@@ -331,6 +351,8 @@ function Asteroids() {
 	// Particles are created when something is shot
 	this.particles = [];
 	
+	this.velocities = [];
+	
 	// things to shoot is everything textual and an element of type not specified in types AND not a navigation element (see further down)
 	// NOTE: Edit later to change formatting of the enemies (size, movement type, etc.)
 	function updateEnemyIndex() 
@@ -341,6 +363,7 @@ function Asteroids() {
 			
 		var all = document.body.getElementsByTagName('*');
 		that.enemies = [];
+		
 		for ( var i = 0, el; el = all[i]; i++ ) 
 		{
 			// elements with className ASTEROIDSYEAH are part of the "game"
@@ -349,6 +372,12 @@ function Asteroids() {
 			{
 				el.aSize = size(el);
 				that.enemies.push(el);
+				
+				//generate a random velocity
+				that.velocities.push({
+					// random direction
+					dir: (new Vector(Math.random() * 20 - 10, Math.random() * 20 - 10)).normalize()
+				});
 				
 				addClass(el, "ASTEROIDSYEAHENEMY");
 				
@@ -361,6 +390,7 @@ function Asteroids() {
 			}
 		}
 	};
+	
 	updateEnemyIndex();
 	
 	// createFlames create the vectors for the flames of the ship
@@ -483,6 +513,10 @@ function Asteroids() {
 		}
 	}
 	
+	function changeBackground(whichColor){
+		document.bgColor = backColor[whichColor-1];
+	};
+	
 	// Find a specific element within an X and a Y
 	function getElementFromPoint(x, y) {
 		// hide canvas so it isn't picked up
@@ -520,10 +554,13 @@ function Asteroids() {
 	
 	// Calculate score.
 	function setScore() {
-		that.points.innerHTML = window.ASTEROIDS.enemiesKilled * 10;
+		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
+		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
+		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
+		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;//window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
 		
-		// STUB
-		// that.points.innerHTML = window.Asteroids.enemiesKilled * 10 * currentCombo;
+		if(('localStorage' in window) && window['localStorage'] !== null)
+			localStorage["highscore"] = window.ASTEROIDS.currentScore;
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -632,7 +669,8 @@ function Asteroids() {
 		message.style.border = '1px solid #999';
 		message.style.background = 'white';
 		message.style.color = "black";
-		message.innerHTML = 'HERPA DERPAKJFDLKS';
+		message.innerHTML = 'Press Esc to Quit.';
+		
 		document.body.appendChild(message);
 		
 		var x = e.pageX || (e.clientX + document.documentElement.scrollLeft);
@@ -683,8 +721,16 @@ function Asteroids() {
 	this.gameContainer.appendChild(this.canvas);
 	this.ctx = this.canvas.getContext("2d");
 	
-	this.ctx.fillStyle = "black";
-	this.ctx.strokeStyle = "black";
+	if(document.bgColor == backColor[0])
+	{
+		this.ctx.fillStyle = "white";
+		this.ctx.strokeStyle = "white";
+	}
+	else
+	{
+		this.ctx.fillStyle = "black";
+		this.ctx.strokeStyle = "black";
+	}
 	
 	// navigation wrapper element
 	// Create Document properties.
@@ -700,16 +746,20 @@ function Asteroids() {
 			right = "10px";
 			textAlign = "right";
 		}
-		this.navigation.innerHTML = "(press esc to quit) ";
+		this.navigation.innerHTML = "(Press Esc To Quit.) ";
+		
 		this.gameContainer.appendChild(this.navigation);
 		
-		// points
-		this.points = document.createElement('span');
-		this.points.id = 'ASTEROIDS-POINTS';
-		this.points.style.font = "28pt Arial, sans-serif";
-		this.points.style.fontWeight = "bold";
-		this.points.className = "ASTEROIDSYEAH";
-		this.navigation.appendChild(this.points);
+		// lives
+		this.lives = document.createElement('span');
+		this.lives.id = 'ASTEROIDS-LIVES';
+		this.lives.style.font = "28pt Arial, sans-serif";
+		this.lives.style.fontWeight = "bold";
+		this.lives.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.lives);
+		
+		this.linebreak1 = document.createElement('br');
+		this.navigation.appendChild(this.linebreak1);
 		
 		// points
 		this.points = document.createElement('span');
@@ -718,8 +768,20 @@ function Asteroids() {
 		this.points.style.fontWeight = "bold";
 		this.points.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.points);
+		
+		this.linebreak2 = document.createElement('br');
+		this.navigation.appendChild(this.linebreak2);
+		
+		// combo
+		this.combo = document.createElement('span');
+		this.combo.id = 'ASTEROIDS-POINTS';
+		this.combo.style.font = "28pt Arial, sans-serif";
+		this.combo.style.fontWeight = "bold";
+		this.combo.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.combo);
 	}
-	else // Already created.{
+	else // Already created.
+	{
 		this.navigation = document.getElementById('ASTEROIDS-NAVIGATION');
 		this.points = document.getElementById('ASTEROIDS-POINTS');
 	}
@@ -773,7 +835,7 @@ function Asteroids() {
 		}
 		
 		// check here so we can stop propagation appropriately
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation)
@@ -787,7 +849,7 @@ function Asteroids() {
 	
 	var eventKeypress = function(event) {
 		event = event || window.event;
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D')], event.keyCode || event.which) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode || event.which) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -803,7 +865,7 @@ function Asteroids() {
 		event = event || window.event;
 		that.keysPressed[event.keyCode] = false;
 
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -856,8 +918,14 @@ function Asteroids() {
 	
 	var PI_SQ = Math.PI*2;
 	
-	this.ctx.drawBullets = function(bullets) {
-		for ( var i = 0; i < bullets.length; i++ ) {
+	this.ctx.drawBullets = function(bullets) 
+	{
+		for ( var i = 0; i < bullets.length; i++ ) 
+		{
+			if(document.bgColor == backColor[0])
+			{
+				this.fillStyle = "white";
+			}
 			this.beginPath();
 			this.arc(bullets[i].pos.x, bullets[i].pos.y, bulletRadius, 0, PI_SQ, true);
 			this.closePath();
@@ -925,7 +993,7 @@ function Asteroids() {
 		var tDelta = (nowTime - lastUpdate) / 1000;
 		
 		// STUB countdown time by seconds.
-		if(currentTime > 0 && tDelsta > 0){
+		if(currentTime > 0 && tDelta > 0){
 			currentTime--;
 		}
 		lastUpdate = nowTime;
@@ -967,8 +1035,11 @@ function Asteroids() {
 		// fire
 		if ( this.keysPressed[code(' ')] && nowTime - this.firedAt > timeBetweenFire ) 
 		{
-			this.bullets.unshift({'dir': this.dir.cp(), 'pos': this.pos.cp(), 
-			'startVel': this.vel.cp(),'cameAlive': nowTime});
+			this.bullets.unshift({
+			'dir': this.dir.cp(), 
+			'pos': this.pos.cp(), 
+			'startVel': this.vel.cp(),
+			'cameAlive': nowTime});
 			
 			this.firedAt = nowTime;
 			
@@ -978,8 +1049,22 @@ function Asteroids() {
 			}
 		}
 		
+		// Change color to Black.
+		if ( this.keysPressed[code('1')] ) {
+			changeBackground(1);
+
+			//that.enemies = [];
+			for ( var i = 0; i < this.enemies.length; i++ ) 
+			{
+				this.enemies[i].style.color = "white";
+			}
+			
+			// Change color of image hues here.
+		}
+		
 		// add blink
-		if ( this.keysPressed[code('B')] ) {
+		//if ( this.keysPressed[code('B')] ) 
+		//{
 			if ( ! this.updated.enemies ) {
 				updateEnemyIndex();
 				this.updated.enemies = true;
@@ -992,9 +1077,10 @@ function Asteroids() {
 				this.toggleBlinkStyle();
 				this.updated.blink.time = 0;
 			}
-		} else {
-			this.updated.enemies = false;
-		}
+		//} 
+		//else {
+		//	this.updated.enemies = false;
+		//}
 		
 		if ( this.keysPressed[code('esc')] ) {
 			destroy.apply(this);
@@ -1031,11 +1117,11 @@ function Asteroids() {
 		for ( var i = this.bullets.length - 1; i >= 0; i-- ) 
 		{
 			// bullets should only live for 2 seconds
-			if ( nowTime - this.bullets[i].cameAlive > 2000 ) 
+			if ( nowTime - this.bullets[i].cameAlive > 500 ) 
 			{
 				this.bullets.splice(i, 1);
 				forceChange = true;
-				currentCombo = 0;
+				window.ASTEROIDS.currentCombo = 1;
 				continue;
 			}
 			
@@ -1048,17 +1134,52 @@ function Asteroids() {
 			var murdered = getElementFromPoint(this.bullets[i].pos.x, this.bullets[i].pos.y);
 			if (murdered && murdered.tagName && 
 				indexOf(ignoredTypes, murdered.tagName.toUpperCase()) == -1 &&
-				hasOnlyTextualChildren(murdered) && murdered.className != "ASTEROIDSYEAH") 
+				hasOnlyTextualChildren(murdered) && murdered.className == "ASTEROIDSYEAHENEMY") 
 			{
 				didKill = true;
 				addParticles(this.bullets[i].pos);
 				this.dying.push(murdered);
 				this.bullets.splice(i, 1);
-				currentCombo++; //Increase the current combo rate.
+				window.ASTEROIDS.currentScore += window.ASTEROIDS.currentCombo * 10;
+				window.ASTEROIDS.currentCombo++; //Increase the current combo rate.
 				continue;
 			}
 		}
 		
+		// update ship collisions
+		var shipHit = getElementFromPoint(this.pos.x, this.pos.y);
+		if(shipHit && shipHit.tagName && indexOf(ignoredTypes, shipHit.tagName.toUpperCase()) == -1 
+				&& hasOnlyTextualChildren(shipHit) && shipHit.className == "ASTEROIDSYEAHENEMY")
+		{
+			window.ASTEROIDS.currentLives--;
+			addParticles(this.pos);
+			
+			if(window.ASTEROIDS.currentLives > 0)
+			{
+				this.pos.x = 100;
+				this.pos.y = 100;
+			}
+			else
+			{
+				this.highscoreLink.onclick();
+				destroy.apply(this);
+			}
+		}
+
+		for (var i = 0; i < this.enemies.length; i++ ) 
+		{
+			var objectVel = this.velocities[i].dir.setLengthNew(5 * tDelta);
+			
+			var currentPosition = new Vector(this.enemies[i].offsetLeft + Math.ceil(objectVel.x), this.enemies[i].offsetTop + Math.ceil(objectVel.y));
+			boundsCheck(currentPosition);
+			
+			var newLeft = currentPosition.x + "px";
+			var newTop = currentPosition.y + "px";
+			this.enemies[i].style.position = "absolute";
+			this.enemies[i].style.left = newLeft;
+			this.enemies[i].style.top = newTop;
+		}
+			
 		if (this.dying.length) {
 			for ( var i = this.dying.length - 1; i >= 0; i-- ) {
 				try {
@@ -1070,9 +1191,11 @@ function Asteroids() {
 				} catch ( e ) {}
 			}
 
-			setScore();
 			this.dying = [];
 		}
+		
+		setScore();
+		
 
 		// update particles position
 		for ( var i = this.particles.length - 1; i >= 0; i-- ) {
