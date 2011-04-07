@@ -288,6 +288,18 @@ function Asteroids()
 	
 	var currentLives = 3;
 	
+	var backColor = new Array(); // don't change this
+
+	// Enter the colors you wish to use.  Follow the
+	// pattern to use more colors.  The number in the
+	// brackets [] is the number you will use in the
+	// function call to pick each color.
+
+	backColor[0] = '#000000';
+	backColor[1] = '#00FF00';
+	backColor[2] = '#0000FF';
+	backColor[3] = '#FFFFFF';
+
 	/**********************************************************************************/
 	
 	// Flames generated every 10 ms.
@@ -362,6 +374,7 @@ function Asteroids()
 			}
 		}
 	};
+	
 	updateEnemyIndex();
 	
 	// createFlames create the vectors for the flames of the ship
@@ -483,6 +496,10 @@ function Asteroids()
 			p.gameContainer.style.visibility = vis;
 		}
 	}
+	
+	function changeBackground(whichColor){
+		document.bgColor = backColor[whichColor-1];
+	};
 	
 	// Find a specific element within an X and a Y
 	function getElementFromPoint(x, y) {
@@ -684,8 +701,16 @@ function Asteroids()
 	this.gameContainer.appendChild(this.canvas);
 	this.ctx = this.canvas.getContext("2d");
 	
-	this.ctx.fillStyle = "black";
-	this.ctx.strokeStyle = "black";
+	if(document.bgColor == backColor[0])
+	{
+		this.ctx.fillStyle = "white";
+		this.ctx.strokeStyle = "white";
+	}
+	else
+	{
+		this.ctx.fillStyle = "black";
+		this.ctx.strokeStyle = "black";
+	}
 	
 	// navigation wrapper element
 	// Create Document properties.
@@ -776,7 +801,7 @@ function Asteroids()
 		}
 		
 		// check here so we can stop propagation appropriately
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation)
@@ -790,7 +815,7 @@ function Asteroids()
 	
 	var eventKeypress = function(event) {
 		event = event || window.event;
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D')], event.keyCode || event.which) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode || event.which) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -806,7 +831,7 @@ function Asteroids()
 		event = event || window.event;
 		that.keysPressed[event.keyCode] = false;
 
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -859,8 +884,14 @@ function Asteroids()
 	
 	var PI_SQ = Math.PI*2;
 	
-	this.ctx.drawBullets = function(bullets) {
-		for ( var i = 0; i < bullets.length; i++ ) {
+	this.ctx.drawBullets = function(bullets) 
+	{
+		for ( var i = 0; i < bullets.length; i++ ) 
+		{
+			if(document.bgColor == backColor[0])
+			{
+				this.fillStyle = "white";
+			}
 			this.beginPath();
 			this.arc(bullets[i].pos.x, bullets[i].pos.y, bulletRadius, 0, PI_SQ, true);
 			this.closePath();
@@ -979,6 +1010,20 @@ function Asteroids()
 			{
 				this.bullets.pop();
 			}
+		}
+		
+		// Change color to Black.
+		if ( this.keysPressed[code('1')] ) {
+			changeBackground(1);
+			
+			var all = document.body.getElementsByTagName('*');
+			that.enemies = [];
+			for ( var i = 0, el; el = all[i]; i++ ) 
+			{
+				el.style.color = "white";
+			}
+			
+			// Change color of image hues here.
 		}
 		
 		// add blink
