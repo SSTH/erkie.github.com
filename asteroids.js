@@ -2,7 +2,7 @@
 function Asteroids() 
 {
 	if ( ! window.ASTEROIDS )
-	window.ASTEROIDS = {enemiesKilled: 0};
+	window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentCombo: 0};
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -288,6 +288,18 @@ function Asteroids()
 	
 	var currentLives = 3;
 	
+	var backColor = new Array(); // don't change this
+
+	// Enter the colors you wish to use.  Follow the
+	// pattern to use more colors.  The number in the
+	// brackets [] is the number you will use in the
+	// function call to pick each color.
+
+	backColor[0] = '#000000';
+	backColor[1] = '#00FF00';
+	backColor[2] = '#0000FF';
+	backColor[3] = '#FFFFFF';
+
 	/**********************************************************************************/
 	
 	// Flames generated every 10 ms.
@@ -327,6 +339,8 @@ function Asteroids()
 	// Enemies lay first in this.enemies, when they are shot they are moved to this.dying
 	this.enemies = [];
 	this.dying = [];
+	this.velocities = [];
+	this.directions = [];
 	this.totalEnemies = 0;
 	
 	// Particles are created when something is shot
@@ -342,6 +356,12 @@ function Asteroids()
 			
 		var all = document.body.getElementsByTagName('*');
 		that.enemies = [];
+		
+		// Indices match each object in the enemy array.
+		// direction will be between 0 and 360 for a direction.
+		that.velocities = [];
+		that.directions = [];
+		
 		for ( var i = 0, el; el = all[i]; i++ ) 
 		{
 			// elements with className ASTEROIDSYEAH are part of the "game"
@@ -356,13 +376,55 @@ function Asteroids()
 				// this is only for enemycounting
 				if ( ! el.aAdded ) 
 				{
+					/*
+					//generate a random velocity
+					var newVelocity = random(1-10)
+					var newDirection = random(0-360)
+					that.velocities.push(newVelocity);
+					that.directions.push(newDirection);
+					*/
 					el.aAdded = true;
 					that.totalEnemies++;
 				}
 			}
 		}
 	};
+	
 	updateEnemyIndex();
+	
+	function updateEnemyVelocity() 
+	{
+	// Remove enemies that belong to the game that might have been added to the enemy list.
+		for ( var i = 0, enemy; enemy = that.enemies[i]; i++ )
+			removeClass(enemy, "ASTEROIDSYEAHENEMY");
+			
+		var all = document.body.getElementsByTagName('*');
+		that.enemies = [];
+		for ( var i = 0, el; el = all[i]; i++ ) 
+		{
+			// Bounce objects against bounds of the screen
+			/*
+			  if (P[i].x < -1 && V[i].x < 0)
+			  {
+				V[i].x = -V[i].x;
+			  }
+			  if (P[i].y > 1 && V[i].y > 0)
+			  {
+				V[i].y = -V[i].y;
+			  };
+			  if (P[i].x > 1 && V[i].x > 0)
+			  {
+				V[i].x = -V[i].x;
+			  }
+			  if (P[i].y < -1 && V[i].y < 0)
+			  {
+				V[i].y = -V[i].y;
+			  }
+			*/
+		}
+	};
+	
+	updateEnemyVelocity();
 	
 	// createFlames create the vectors for the flames of the ship
 	var createFlames;
@@ -484,6 +546,10 @@ function Asteroids()
 		}
 	}
 	
+	function changeBackground(whichColor){
+		document.bgColor = backColor[whichColor-1];
+	};
+	
 	// Find a specific element within an X and a Y
 	function getElementFromPoint(x, y) {
 		// hide canvas so it isn't picked up
@@ -521,10 +587,10 @@ function Asteroids()
 	
 	// Calculate score.
 	function setScore() {
-		that.points.innerHTML = window.ASTEROIDS.enemiesKilled * 10;
-		
-		// STUB
-		// that.points.innerHTML = window.Asteroids.enemiesKilled * 10 * currentCombo;
+		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
+		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
+		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
+		that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -634,6 +700,7 @@ function Asteroids()
 		message.style.background = 'white';
 		message.style.color = "black";
 		message.innerHTML = 'Press Esc to Quit.';
+		
 		document.body.appendChild(message);
 		
 		var x = e.pageX || (e.clientX + document.documentElement.scrollLeft);
@@ -684,8 +751,16 @@ function Asteroids()
 	this.gameContainer.appendChild(this.canvas);
 	this.ctx = this.canvas.getContext("2d");
 	
-	this.ctx.fillStyle = "black";
-	this.ctx.strokeStyle = "black";
+	if(document.bgColor == backColor[0])
+	{
+		this.ctx.fillStyle = "white";
+		this.ctx.strokeStyle = "white";
+	}
+	else
+	{
+		this.ctx.fillStyle = "black";
+		this.ctx.strokeStyle = "black";
+	}
 	
 	// navigation wrapper element
 	// Create Document properties.
@@ -705,13 +780,13 @@ function Asteroids()
 		
 		this.gameContainer.appendChild(this.navigation);
 		
-		// points
-		this.points = document.createElement('span');
-		this.points.id = 'ASTEROIDS-POINTS';
-		this.points.style.font = "28pt Arial, sans-serif";
-		this.points.style.fontWeight = "bold";
-		this.points.className = "ASTEROIDSYEAH";
-		this.navigation.appendChild(this.points);
+		// lives
+		this.lives = document.createElement('span');
+		this.lives.id = 'ASTEROIDS-LIVES';
+		this.lives.style.font = "28pt Arial, sans-serif";
+		this.lives.style.fontWeight = "bold";
+		this.lives.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.lives);
 		
 		// points
 		this.points = document.createElement('span');
@@ -720,6 +795,14 @@ function Asteroids()
 		this.points.style.fontWeight = "bold";
 		this.points.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.points);
+		
+		// combo
+		this.combo = document.createElement('span');
+		this.combo.id = 'ASTEROIDS-POINTS';
+		this.combo.style.font = "28pt Arial, sans-serif";
+		this.combo.style.fontWeight = "bold";
+		this.combo.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.combo);
 	}
 	else // Already created.
 	{
@@ -776,7 +859,7 @@ function Asteroids()
 		}
 		
 		// check here so we can stop propagation appropriately
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation)
@@ -790,7 +873,7 @@ function Asteroids()
 	
 	var eventKeypress = function(event) {
 		event = event || window.event;
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D')], event.keyCode || event.which) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode || event.which) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -806,7 +889,7 @@ function Asteroids()
 		event = event || window.event;
 		that.keysPressed[event.keyCode] = false;
 
-		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D')], event.keyCode) != -1 ) {
+		if ( indexOf([code('up'), code('down'), code('right'), code('left'), code(' '), code('B'), code('W'), code('A'), code('S'), code('D'), code('1')], event.keyCode) != -1 ) {
 			if ( event.preventDefault )
 				event.preventDefault();
 			if ( event.stopPropagation )
@@ -859,8 +942,14 @@ function Asteroids()
 	
 	var PI_SQ = Math.PI*2;
 	
-	this.ctx.drawBullets = function(bullets) {
-		for ( var i = 0; i < bullets.length; i++ ) {
+	this.ctx.drawBullets = function(bullets) 
+	{
+		for ( var i = 0; i < bullets.length; i++ ) 
+		{
+			if(document.bgColor == backColor[0])
+			{
+				this.fillStyle = "white";
+			}
 			this.beginPath();
 			this.arc(bullets[i].pos.x, bullets[i].pos.y, bulletRadius, 0, PI_SQ, true);
 			this.closePath();
@@ -981,6 +1070,20 @@ function Asteroids()
 			}
 		}
 		
+		// Change color to Black.
+		if ( this.keysPressed[code('1')] ) {
+			changeBackground(1);
+			
+			var all = document.body.getElementsByTagName('*');
+			that.enemies = [];
+			for ( var i = 0, el; el = all[i]; i++ ) 
+			{
+				el.style.color = "white";
+			}
+			
+			// Change color of image hues here.
+		}
+		
 		// add blink
 		if ( this.keysPressed[code('B')] ) {
 			if ( ! this.updated.enemies ) {
@@ -1038,7 +1141,7 @@ function Asteroids()
 			{
 				this.bullets.splice(i, 1);
 				forceChange = true;
-				currentCombo = 0;
+				window.ASTEROIDS.currentCombo = 0;
 				continue;
 			}
 			
@@ -1057,10 +1160,30 @@ function Asteroids()
 				addParticles(this.bullets[i].pos);
 				this.dying.push(murdered);
 				this.bullets.splice(i, 1);
-				currentCombo++; //Increase the current combo rate.
+				window.ASTEROIDS.currentCombo++; //Increase the current combo rate.
 				continue;
 			}
 		}
+		
+		// update ship collisions
+		/*
+		var all = document.body.getElementsByTagName('*');
+		that.enemies = [];
+		for ( var i = 0, el; el = all[i]; i++ ) 
+		{
+			// check bounds X of player on all website elements.
+			if ( this.pos.x  el.x ) {
+				window.scrollTo(this.scrollPos.x + 50, this.scrollPos.y);
+				this.pos.x = 0;
+			} else if ( this.pos.x < 0 ) {
+				window.scrollTo(this.scrollPos.x - 50, this.scrollPos.y);
+				this.pos.x = w;
+			}
+			
+			if(collision)
+				currentLives--;
+		}
+		*/
 		
 		if (this.dying.length) {
 			for ( var i = this.dying.length - 1; i >= 0; i-- ) {
