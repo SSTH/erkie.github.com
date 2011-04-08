@@ -2,7 +2,7 @@
 function Asteroids() 
 {
 	if ( ! window.ASTEROIDS )
-	window.ASTEROIDS = {enemiesKilled: 0};
+	window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentCombo: 0};
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -538,10 +538,10 @@ function Asteroids()
 	
 	// Calculate score.
 	function setScore() {
-		that.points.innerHTML = window.ASTEROIDS.enemiesKilled * 10;
-		
-		// STUB
-		// that.points.innerHTML = window.Asteroids.enemiesKilled * 10 * currentCombo;
+		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
+		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
+		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
+		that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -651,6 +651,7 @@ function Asteroids()
 		message.style.background = 'white';
 		message.style.color = "black";
 		message.innerHTML = 'Press Esc to Quit.';
+		
 		document.body.appendChild(message);
 		
 		var x = e.pageX || (e.clientX + document.documentElement.scrollLeft);
@@ -730,13 +731,13 @@ function Asteroids()
 		
 		this.gameContainer.appendChild(this.navigation);
 		
-		// points
-		this.points = document.createElement('span');
-		this.points.id = 'ASTEROIDS-POINTS';
-		this.points.style.font = "28pt Arial, sans-serif";
-		this.points.style.fontWeight = "bold";
-		this.points.className = "ASTEROIDSYEAH";
-		this.navigation.appendChild(this.points);
+		// lives
+		this.lives = document.createElement('span');
+		this.lives.id = 'ASTEROIDS-LIVES';
+		this.lives.style.font = "28pt Arial, sans-serif";
+		this.lives.style.fontWeight = "bold";
+		this.lives.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.lives);
 		
 		// points
 		this.points = document.createElement('span');
@@ -745,6 +746,14 @@ function Asteroids()
 		this.points.style.fontWeight = "bold";
 		this.points.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.points);
+		
+		// combo
+		this.combo = document.createElement('span');
+		this.combo.id = 'ASTEROIDS-POINTS';
+		this.combo.style.font = "28pt Arial, sans-serif";
+		this.combo.style.fontWeight = "bold";
+		this.combo.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.combo);
 	}
 	else // Already created.
 	{
@@ -1083,7 +1092,7 @@ function Asteroids()
 			{
 				this.bullets.splice(i, 1);
 				forceChange = true;
-				currentCombo = 0;
+				window.ASTEROIDS.currentCombo = 0;
 				continue;
 			}
 			
@@ -1102,10 +1111,30 @@ function Asteroids()
 				addParticles(this.bullets[i].pos);
 				this.dying.push(murdered);
 				this.bullets.splice(i, 1);
-				currentCombo++; //Increase the current combo rate.
+				window.ASTEROIDS.currentCombo++; //Increase the current combo rate.
 				continue;
 			}
 		}
+		
+		// update ship collisions
+		/*
+		var all = document.body.getElementsByTagName('*');
+		that.enemies = [];
+		for ( var i = 0, el; el = all[i]; i++ ) 
+		{
+			// check bounds X of player on all website elements.
+			if ( this.pos.x  el.x ) {
+				window.scrollTo(this.scrollPos.x + 50, this.scrollPos.y);
+				this.pos.x = 0;
+			} else if ( this.pos.x < 0 ) {
+				window.scrollTo(this.scrollPos.x - 50, this.scrollPos.y);
+				this.pos.x = w;
+			}
+			
+			if(collision)
+				currentLives--;
+		}
+		*/
 		
 		if (this.dying.length) {
 			for ( var i = this.dying.length - 1; i >= 0; i-- ) {
