@@ -372,7 +372,7 @@ function Asteroids()
 				//generate a random velocity
 				that.velocities.push({
 					// random direction
-					dir: (new Vector(Math.random() * 35 - 10, Math.random() * 35 - 10)).normalize()
+					dir: (new Vector(Math.random() * 20 - 10, Math.random() * 20 - 10)).normalize()
 				});
 				
 				addClass(el, "ASTEROIDSYEAHENEMY");
@@ -751,6 +751,9 @@ function Asteroids()
 		this.lives.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.lives);
 		
+		this.linebreak1 = document.createElement('br');
+		this.navigation.appendChild(this.linebreak1);
+		
 		// points
 		this.points = document.createElement('span');
 		this.points.id = 'ASTEROIDS-POINTS';
@@ -758,6 +761,9 @@ function Asteroids()
 		this.points.style.fontWeight = "bold";
 		this.points.className = "ASTEROIDSYEAH";
 		this.navigation.appendChild(this.points);
+		
+		this.linebreak2 = document.createElement('br');
+		this.navigation.appendChild(this.linebreak2);
 		
 		// combo
 		this.combo = document.createElement('span');
