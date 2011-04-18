@@ -2,7 +2,7 @@
 function Asteroids() 
 {
 	if ( ! window.ASTEROIDS )
-	window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentCombo: 0};
+	window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, currentCombo: 1};
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -283,7 +283,8 @@ function Asteroids()
 	var currentTime = 60;
 	
 	// If ship is currently in a combo.
-	var currentCombo = 0;
+	var currentCombo = 1;
+	var currentScore = 0;
 	var inCombo = false;
 	
 	var currentLives = 3;
@@ -308,9 +309,11 @@ function Asteroids()
 	// blink style
 	this.toggleBlinkStyle = function () 
 	{
-		if (this.updated.blink.isActive) {
-			removeClass(document.body, 'ASTEROIDSBLINK');
-		} else {
+		if (this.updated.blink.isActive) 
+		{
+			//removeClass(document.body, 'ASTEROIDSBLINK');
+		} else 
+		{
 			addClass(document.body, 'ASTEROIDSBLINK');
 		}
 
@@ -339,12 +342,12 @@ function Asteroids()
 	// Enemies lay first in this.enemies, when they are shot they are moved to this.dying
 	this.enemies = [];
 	this.dying = [];
-	this.velocities = [];
-	this.directions = [];
 	this.totalEnemies = 0;
 	
 	// Particles are created when something is shot
 	this.particles = [];
+	
+	this.velocities = [];
 	
 	// things to shoot is everything textual and an element of type not specified in types AND not a navigation element (see further down)
 	// NOTE: Edit later to change formatting of the enemies (size, movement type, etc.)
@@ -357,11 +360,6 @@ function Asteroids()
 		var all = document.body.getElementsByTagName('*');
 		that.enemies = [];
 		
-		// Indices match each object in the enemy array.
-		// direction will be between 0 and 360 for a direction.
-		that.velocities = [];
-		that.directions = [];
-		
 		for ( var i = 0, el; el = all[i]; i++ ) 
 		{
 			// elements with className ASTEROIDSYEAH are part of the "game"
@@ -371,18 +369,17 @@ function Asteroids()
 				el.aSize = size(el);
 				that.enemies.push(el);
 				
+				//generate a random velocity
+				that.velocities.push({
+					// random direction
+					dir: (new Vector(Math.random() * 35 - 10, Math.random() * 35 - 10)).normalize()
+				});
+				
 				addClass(el, "ASTEROIDSYEAHENEMY");
 				
 				// this is only for enemycounting
 				if ( ! el.aAdded ) 
 				{
-					/*
-					//generate a random velocity
-					var newVelocity = random(1-10)
-					var newDirection = random(0-360)
-					that.velocities.push(newVelocity);
-					that.directions.push(newDirection);
-					*/
 					el.aAdded = true;
 					that.totalEnemies++;
 				}
@@ -391,40 +388,6 @@ function Asteroids()
 	};
 	
 	updateEnemyIndex();
-	
-	function updateEnemyVelocity() 
-	{
-	// Remove enemies that belong to the game that might have been added to the enemy list.
-		for ( var i = 0, enemy; enemy = that.enemies[i]; i++ )
-			removeClass(enemy, "ASTEROIDSYEAHENEMY");
-			
-		var all = document.body.getElementsByTagName('*');
-		that.enemies = [];
-		for ( var i = 0, el; el = all[i]; i++ ) 
-		{
-			// Bounce objects against bounds of the screen
-			/*
-			  if (P[i].x < -1 && V[i].x < 0)
-			  {
-				V[i].x = -V[i].x;
-			  }
-			  if (P[i].y > 1 && V[i].y > 0)
-			  {
-				V[i].y = -V[i].y;
-			  };
-			  if (P[i].x > 1 && V[i].x > 0)
-			  {
-				V[i].x = -V[i].x;
-			  }
-			  if (P[i].y < -1 && V[i].y < 0)
-			  {
-				V[i].y = -V[i].y;
-			  }
-			*/
-		}
-	};
-	
-	updateEnemyVelocity();
 	
 	// createFlames create the vectors for the flames of the ship
 	var createFlames;
@@ -590,7 +553,7 @@ function Asteroids()
 		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
 		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
 		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
-		that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
+		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;//window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -1059,8 +1022,11 @@ function Asteroids()
 		// fire
 		if ( this.keysPressed[code(' ')] && nowTime - this.firedAt > timeBetweenFire ) 
 		{
-			this.bullets.unshift({'dir': this.dir.cp(), 'pos': this.pos.cp(), 
-			'startVel': this.vel.cp(),'cameAlive': nowTime});
+			this.bullets.unshift({
+			'dir': this.dir.cp(), 
+			'pos': this.pos.cp(), 
+			'startVel': this.vel.cp(),
+			'cameAlive': nowTime});
 			
 			this.firedAt = nowTime;
 			
@@ -1073,19 +1039,19 @@ function Asteroids()
 		// Change color to Black.
 		if ( this.keysPressed[code('1')] ) {
 			changeBackground(1);
-			
-			var all = document.body.getElementsByTagName('*');
-			that.enemies = [];
-			for ( var i = 0, el; el = all[i]; i++ ) 
+
+			//that.enemies = [];
+			for ( var i = 0; i < this.enemies.length; i++ ) 
 			{
-				el.style.color = "white";
+				this.enemies[i].style.color = "white";
 			}
 			
 			// Change color of image hues here.
 		}
 		
 		// add blink
-		if ( this.keysPressed[code('B')] ) {
+		//if ( this.keysPressed[code('B')] ) 
+		//{
 			if ( ! this.updated.enemies ) {
 				updateEnemyIndex();
 				this.updated.enemies = true;
@@ -1098,9 +1064,10 @@ function Asteroids()
 				this.toggleBlinkStyle();
 				this.updated.blink.time = 0;
 			}
-		} else {
-			this.updated.enemies = false;
-		}
+		//} 
+		//else {
+		//	this.updated.enemies = false;
+		//}
 		
 		if ( this.keysPressed[code('esc')] ) {
 			destroy.apply(this);
@@ -1137,11 +1104,11 @@ function Asteroids()
 		for ( var i = this.bullets.length - 1; i >= 0; i-- ) 
 		{
 			// bullets should only live for 2 seconds
-			if ( nowTime - this.bullets[i].cameAlive > 2000 ) 
+			if ( nowTime - this.bullets[i].cameAlive > 500 ) 
 			{
 				this.bullets.splice(i, 1);
 				forceChange = true;
-				window.ASTEROIDS.currentCombo = 0;
+				window.ASTEROIDS.currentCombo = 1;
 				continue;
 			}
 			
@@ -1160,31 +1127,46 @@ function Asteroids()
 				addParticles(this.bullets[i].pos);
 				this.dying.push(murdered);
 				this.bullets.splice(i, 1);
+				window.ASTEROIDS.currentScore += window.ASTEROIDS.currentCombo * 10;
 				window.ASTEROIDS.currentCombo++; //Increase the current combo rate.
 				continue;
 			}
 		}
 		
 		// update ship collisions
-		/*
-		var all = document.body.getElementsByTagName('*');
-		that.enemies = [];
-		for ( var i = 0, el; el = all[i]; i++ ) 
+		var shipHit = getElementFromPoint(this.pos.x, this.pos.y);
+		if(shipHit && shipHit.tagName && indexOf(ignoredTypes, shipHit.tagName.toUpperCase()) == -1 
+				&& hasOnlyTextualChildren(shipHit) && shipHit.className != "ASTEROIDSYEAH")
 		{
-			// check bounds X of player on all website elements.
-			if ( this.pos.x  el.x ) {
-				window.scrollTo(this.scrollPos.x + 50, this.scrollPos.y);
-				this.pos.x = 0;
-			} else if ( this.pos.x < 0 ) {
-				window.scrollTo(this.scrollPos.x - 50, this.scrollPos.y);
-				this.pos.x = w;
-			}
+			window.ASTEROIDS.currentLives--;
+			addParticles(this.pos);
 			
-			if(collision)
-				currentLives--;
+			if(window.ASTEROIDS.currentLives > 0)
+			{
+				this.pos.x = 100;
+				this.pos.y = 100;
+			}
+			else
+			{
+				this.highscoreLink.onclick();
+				destroy.apply(this);
+			}
 		}
-		*/
-		
+
+		for (var i = 0; i < this.enemies.length; i++ ) 
+		{
+			var objectVel = this.velocities[i].dir.setLengthNew(5 * tDelta);
+			
+			var currentPosition = new Vector(this.enemies[i].offsetLeft + Math.ceil(objectVel.x), this.enemies[i].offsetTop + Math.ceil(objectVel.y));
+			boundsCheck(currentPosition);
+			
+			var newLeft = currentPosition.x + "px";
+			var newTop = currentPosition.y + "px";
+			this.enemies[i].style.position = "absolute";
+			this.enemies[i].style.left = newLeft;
+			this.enemies[i].style.top = newTop;
+		}
+			
 		if (this.dying.length) {
 			for ( var i = this.dying.length - 1; i >= 0; i-- ) {
 				try {
@@ -1196,9 +1178,11 @@ function Asteroids()
 				} catch ( e ) {}
 			}
 
-			setScore();
 			this.dying = [];
 		}
+		
+		setScore();
+		
 
 		// update particles position
 		for ( var i = this.particles.length - 1; i >= 0; i-- ) {
