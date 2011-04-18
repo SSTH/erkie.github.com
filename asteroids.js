@@ -2,7 +2,10 @@
 function Asteroids() 
 {
 	if ( ! window.ASTEROIDS )
-	window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, currentCombo: 1};
+	{
+		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, currentCombo: 1};
+		window.ASTEROIDS.currentScore = parseInt(localStorage["highscore"]);
+	}
 		
 	/*****************************************
 	CLASS DECLARATIONS
@@ -173,7 +176,8 @@ function Asteroids()
 	};
 	
 	// Highscores element to be implemented.
-	function Highscores() {
+	function Highscores() 
+	{
 		var w = (document.clientWidth || window.innerWidth);
 		var h = (document.clientHeight || window.innerHeight);
 		
@@ -187,7 +191,7 @@ function Asteroids()
 			height = "500px";
 			MozBoxShadow = WebkitBoxShadow = "0 0 25px #000";
 			zIndex = "10002";
-		};
+		};	
 		document.body.appendChild(this.container);
 		
 		// Create iframe
@@ -554,6 +558,9 @@ function Asteroids()
 		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
 		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
 		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;//window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
+		
+		if(('localStorage' in window) && window['localStorage'] !== null)
+			localStorage["highscore"] = window.ASTEROIDS.currentScore;
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -1127,7 +1134,7 @@ function Asteroids()
 			var murdered = getElementFromPoint(this.bullets[i].pos.x, this.bullets[i].pos.y);
 			if (murdered && murdered.tagName && 
 				indexOf(ignoredTypes, murdered.tagName.toUpperCase()) == -1 &&
-				hasOnlyTextualChildren(murdered) && murdered.className != "ASTEROIDSYEAH") 
+				hasOnlyTextualChildren(murdered) && murdered.className == "ASTEROIDSYEAHENEMY") 
 			{
 				didKill = true;
 				addParticles(this.bullets[i].pos);
@@ -1142,7 +1149,7 @@ function Asteroids()
 		// update ship collisions
 		var shipHit = getElementFromPoint(this.pos.x, this.pos.y);
 		if(shipHit && shipHit.tagName && indexOf(ignoredTypes, shipHit.tagName.toUpperCase()) == -1 
-				&& hasOnlyTextualChildren(shipHit) && shipHit.className != "ASTEROIDSYEAH")
+				&& hasOnlyTextualChildren(shipHit) && shipHit.className == "ASTEROIDSYEAHENEMY")
 		{
 			window.ASTEROIDS.currentLives--;
 			addParticles(this.pos);
