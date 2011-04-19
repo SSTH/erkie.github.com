@@ -3,8 +3,8 @@ function Asteroids()
 {
 	if ( ! window.ASTEROIDS )
 	{
-		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, currentCombo: 1};
-		window.ASTEROIDS.currentScore = parseInt(localStorage["highscore"]);
+		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, highscore: 0, currentCombo: 1};
+		window.ASTEROIDS.highscore = parseInt(localStorage["highscore"]);
 	}
 		
 	/*****************************************
@@ -555,12 +555,20 @@ function Asteroids()
 	// Calculate score.
 	function setScore() {
 		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
-		//that.points.innerHTML = "Score: " + window.ASTEROIDS.enemiesKilled * 10;
+		that.highscore.innerHTML = "High Score: " + window.ASTEROIDS.highscore;
 		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
 		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;//window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
 		
 		if(('localStorage' in window) && window['localStorage'] !== null)
-			localStorage["highscore"] = window.ASTEROIDS.currentScore;
+		{
+			var highscore = localStorage["highscore"];
+			
+			if(window.ASTEROIDS.currentScore > window.ASTEROIDS.highscore)
+			{
+				window.ASTEROIDS.highscore = window.ASTEROIDS.currentScore;
+				localStorage["highscore"] = window.ASTEROIDS.currentScore;
+			}
+		}
 	};
 	
 	// Check if an element is a contexual element such as an image or header or such
@@ -760,6 +768,17 @@ function Asteroids()
 		
 		this.linebreak1 = document.createElement('br');
 		this.navigation.appendChild(this.linebreak1);
+		
+		// highscore
+		this.highscore = document.createElement('span');
+		this.highscore.id = 'ASTEROIDS-HIGHSCORE';
+		this.highscore.style.font = "28pt Arial, sans-serif";
+		this.highscore.style.fontWeight = "bold";
+		this.highscore.className = "ASTEROIDSYEAH";
+		this.navigation.appendChild(this.highscore);
+		
+		this.linebreak3 = document.createElement('br');
+		this.navigation.appendChild(this.linebreak3);
 		
 		// points
 		this.points = document.createElement('span');
@@ -1161,7 +1180,7 @@ function Asteroids()
 			}
 			else
 			{
-				this.highscoreLink.onclick();
+				//this.highscoreLink.onclick();
 				destroy.apply(this);
 			}
 		}
