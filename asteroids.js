@@ -4,7 +4,14 @@ function Asteroids()
 	if ( ! window.ASTEROIDS )
 	{
 		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, highscore: 0, currentCombo: 1};
-		window.ASTEROIDS.highscore = parseInt(localStorage["highscore"]);
+		if(isNaN(localStorage[document.URL]))
+		{
+			window.ASTEROIDS.highscore = 0;
+		}
+		else
+		{
+			window.ASTEROIDS.highscore = parseInt(localStorage[document.URL]);
+		}
 	}
 		
 	/*****************************************
@@ -557,16 +564,14 @@ function Asteroids()
 		that.lives.innerHTML = "Lives: " + window.ASTEROIDS.currentLives;
 		that.highscore.innerHTML = "High Score: " + window.ASTEROIDS.highscore;
 		that.combo.innerHTML = "Current Combo: " + window.ASTEROIDS.currentCombo;
-		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;//window.ASTEROIDS.enemiesKilled * 10 * window.ASTEROIDS.currentCombo;
+		that.points.innerHTML = "Score: " + window.ASTEROIDS.currentScore;
 		
 		if(('localStorage' in window) && window['localStorage'] !== null)
 		{
-			var highscore = localStorage["highscore"];
-			
 			if(window.ASTEROIDS.currentScore > window.ASTEROIDS.highscore)
 			{
 				window.ASTEROIDS.highscore = window.ASTEROIDS.currentScore;
-				localStorage["highscore"] = window.ASTEROIDS.currentScore;
+				localStorage[document.URL] = window.ASTEROIDS.currentScore;
 			}
 		}
 	};
@@ -820,15 +825,14 @@ function Asteroids()
 	this.highscoreLink.className = "ASTEROIDSYEAH";
 	this.highscoreLink.style.display = "block";
 	this.highscoreLink.href = '#';
-	this.highscoreLink.innerHTML = "Help/Submit highscore?";
+	this.highscoreLink.innerHTML = "Reset Highscore?";
 	this.navigation.appendChild(this.highscoreLink);
 	
 	// STUB change highscore to take from local.
-	this.highscoreLink.onclick = function() {
-		if ( ! that.highscores ) {
-			that.highscores = new Highscores();
-		}
-		that.highscores.show();
+	this.highscoreLink.onclick = function() 
+	{
+		localStorage[document.URL] = 0;
+		window.ASTEROIDS.highscore = 0;
 		return false;
 	};
 	
