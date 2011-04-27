@@ -4,13 +4,17 @@ function Asteroids()
 	if ( ! window.ASTEROIDS )
 	{
 		window.ASTEROIDS = {enemiesKilled: 0, currentLives: 3, currentScore: 0, highscore: 0, currentCombo: 1};
-		if(isNaN(localStorage[document.URL]))
+		
+		if(('localStorage' in window) && window['localStorage'] !== null)
 		{
-			window.ASTEROIDS.highscore = 0;
-		}
-		else
-		{
-			window.ASTEROIDS.highscore = parseInt(localStorage[document.URL]);
+			if(isNaN(localStorage[document.URL]))
+			{
+				window.ASTEROIDS.highscore = 0;
+			}
+			else
+			{
+				window.ASTEROIDS.highscore = parseInt(localStorage[document.URL]);
+			}
 		}
 	}
 		
@@ -182,71 +186,6 @@ function Asteroids()
 		}
 	};
 	
-	// Highscores element to be implemented.
-	function Highscores() 
-	{
-		var w = (document.clientWidth || window.innerWidth);
-		var h = (document.clientHeight || window.innerHeight);
-		
-		this.container = document.createElement('div');
-		this.container.className = "ASTEROIDSYEAH";
-		with ( this.container.style ) {
-			position = "fixed";
-			top = (h / 2 - 250) + "px";
-			left = (w / 2 - 250) + "px";
-			width = "500px";
-			height = "500px";
-			MozBoxShadow = WebkitBoxShadow = "0 0 25px #000";
-			zIndex = "10002";
-		};	
-		document.body.appendChild(this.container);
-		
-		// Create iframe
-		this.iframe = document.createElement('iframe');
-		this.iframe.className = "ASTEROIDSYEAH";
-		this.iframe.width = this.iframe.height = 500;
-		this.iframe.src = highscoreURL;
-		this.iframe.frameBorder = 0;
-		this.container.appendChild(this.iframe);
-		
-		// Create close button
-		this.close = document.createElement('a');
-		this.close.href = "#";
-		this.close.onclick = function() {
-			that.highscores.hide();
-		};
-		this.close.innerHTML = "X";
-		with ( this.close.style ) {
-			position = "absolute";
-			display = "block";
-			width = "24px";
-			height = "24px";
-			top = "-12px";
-			right = "-12px";
-			background = "url(" + closeURL + ")";
-			textIndent = "-10000px";
-			outline = "none";
-			textDecoration = "none";
-			fontFamily = "Arial";
-			zIndex = "10003";
-		}
-		this.container.appendChild(this.close);
-	};
-	Highscores.prototype = {
-		show: function() {
-			this.container.style.display = "block";
-			this.sendScore();
-		},
-		
-		hide: function() {
-			this.container.style.display = "none";
-		},
-		
-		sendScore: function() {
-			this.iframe.src = highscoreURL + "#" + (that.enemiesKilled * 10) + ":" + escape(document.location.href);
-		}
-	};
-	
 	/**********************************************************************************/
 	
 	/*****************************************
@@ -286,9 +225,6 @@ function Asteroids()
 	var bulletRadius = 2;
 	var maxParticles = isIE ? 20 : 40;
 	var maxBullets = isIE ? 10 : 20;
-	
-	var highscoreURL = "http://asteroids.glonk.se/highscores.html";
-	var closeURL = "http://asteroids.glonk.se/close.png";
 	
 	// Current Timer until gameover.
 	var currentTime = 60;
@@ -383,7 +319,7 @@ function Asteroids()
 				//generate a random velocity
 				that.velocities.push({
 					// random direction
-					dir: (new Vector(Math.random() * 20 - 10, Math.random() * 20 - 10)).normalize()
+					dir: (new Vector(Math.random() * 200 - 10, Math.random() * 200 - 10)).normalize()
 				});
 				
 				addClass(el, "ASTEROIDSYEAHENEMY");
@@ -543,6 +479,32 @@ function Asteroids()
 		applyVisibility('visible');
 		return element;
 	};
+	
+	// Overlapping function.
+	function isOverlapping(elm1, elm2) {
+	  var pos_elm1 = AJS.absolutePosition(elm1);
+	  var pos_elm2 = AJS.absolutePosition(elm2);
+	  var top1 = pos_elm1.y;
+	  var left1 = pos_elm1.x;
+	  var right1 = left1 + elm1.offsetWidth;
+	  var bottom1 = top1 + elm1.offsetHeight;
+	  var top2 = pos_elm2.y;
+	  var left2 = pos_elm2.x;
+	  var right2 = left2 + elm2.offsetWidth;
+	  var bottom2 = top2 + elm2.offsetHeight;
+	 
+	  var getSign = function(v) 
+	  {
+		if(v > 0) return "+";
+		else if(v < 0) return "-";
+		else return 0;
+	  }
+
+	  if ((getSign(top1 - bottom2) != getSign(bottom1 - top2)) &&
+		  (getSign(left1 - right2) != getSign(right1 - left2)))
+		return true; 
+	  return false;
+	}
 	
 	// Add particles at a loaction
 	function addParticles(startPos) {
@@ -1086,8 +1048,8 @@ function Asteroids()
 		}
 		
 		// add blink
-		//if ( this.keysPressed[code('B')] ) 
-		//{
+		if ( this.keysPressed[code('B')] ) 
+		{
 			if ( ! this.updated.enemies ) {
 				updateEnemyIndex();
 				this.updated.enemies = true;
@@ -1100,10 +1062,10 @@ function Asteroids()
 				this.toggleBlinkStyle();
 				this.updated.blink.time = 0;
 			}
-		//} 
-		//else {
-		//	this.updated.enemies = false;
-		//}
+		} 
+		else {
+			this.updated.enemies = false;
+		}
 		
 		if ( this.keysPressed[code('esc')] ) {
 			destroy.apply(this);
@@ -1155,6 +1117,10 @@ function Asteroids()
 			
 			// check collisions
 			var murdered = getElementFromPoint(this.bullets[i].pos.x, this.bullets[i].pos.y);
+			
+			// getElementFromPoint only gets element from point with upper right corner. We also shouldn't do an indexing search through the enemies
+			// as it's already slow enough as it is!
+			
 			if (murdered && murdered.tagName && 
 				indexOf(ignoredTypes, murdered.tagName.toUpperCase()) == -1 &&
 				hasOnlyTextualChildren(murdered) && murdered.className == "ASTEROIDSYEAHENEMY") 
